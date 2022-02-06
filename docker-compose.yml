@@ -1,0 +1,76 @@
+version: "3.9"
+   
+services:
+  tab_music:
+    build: ${MUSIC_BUILD_TARGET}
+    environment:
+      # BigQuery variables
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+      - PROJECT_ID=${PROJECT_ID}
+      - DATASET_STORE_ID=${DATASET_STORE_ID}
+      - DATASET_LATEST_ID=${DATASET_LATEST_ID}
+      - TABLE_MUSIC_ID=${TABLE_MUSIC_ID}
+      # Bind mount targets
+      - LOGS_TARGET=${LOGS_TARGET}
+      - LIBRARY_TARGET=${LIBRARY_TARGET}
+      - REPORT_TARGET=${REPORT_TARGET}
+    volumes:
+      # Logging
+      - type: bind
+        source: ${LOGS_SOURCE}
+        target: ${LOGS_TARGET}
+        read_only: ${LOGS_TARGET_RO}
+      # BigQuery Credentials
+      - type: bind
+        source: ${BQ_SOURCE}
+        target: ${GOOGLE_APPLICATION_CREDENTIALS}
+        read_only: ${BQ_RO}
+      # Library
+      - type: bind
+        source: ${LIBRARY_SOURCE}
+        target: ${LIBRARY_TARGET}
+        read_only: ${LIBRARY_TARGET_RO}
+      # Host Report Save Directory
+      - type: bind
+        source: ${REPORT_SOURCE}
+        target: ${REPORT_TARGET}
+        read_only: ${REPORT_RO}
+  tab_scrob:
+    build: ${SCROBBLE_BUILD_TARGET}
+    environment:
+      # BigQuery variables
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+      - PROJECT_ID=${PROJECT_ID}
+      - DATASET_LATEST_ID=${DATASET_LATEST_ID}
+      - TABLE_SCROB_ID=${TABLE_SCROB_ID}
+      # last.fm variables
+      - LASTFM_USERNAME=${LASTFM_USERNAME}
+      - LASTFM_API_KEY=${LASTFM_API_KEY}
+      - PAGE_RETRIEVE_COUNT=2
+      # Bind mount targets
+      - LOGS_TARGET=${LOGS_TARGET}
+      - SCROBBLE_TARGET=${SCROBBLE_TARGET}
+      - MAPPER_TARGET=${MAPPER_TARGET}
+    volumes:
+      # Logging
+      - type: bind
+        source: ${LOGS_SOURCE}
+        target: ${LOGS_TARGET}
+        read_only: ${LOGS_TARGET_RO}
+      # BigQuery Credentials
+      - type: bind
+        source: ${BQ_SOURCE}
+        target: ${GOOGLE_APPLICATION_CREDENTIALS}
+        read_only: ${BQ_RO}
+      # Host scrobble Save Directory
+      - type: bind
+        source: ${SCROBBLE_SOURCE}
+        target: ${SCROBBLE_TARGET}
+        read_only: ${SCROBBLE_RO}     
+      # Mapper
+      - type: bind
+        source: ${MAPPER_SOURCE}
+        target: ${MAPPER_TARGET}
+        read_only: ${MAPPER_RO}
+
+      

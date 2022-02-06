@@ -1,0 +1,64 @@
+---
+# Intro:
+# google.cloud.bigquery's load_table_from_dataframe method requires that the
+# input DataFrame's schema be compatible with bigquery.Table's schema.
+
+# Problem:
+# The 'Energy' and 'KPlay' df cols must be converted to Int64 (numpy) type to
+# be loaded to bigquery. Because of limitation, cannot do so in one conversion
+# step. So need to do it like so:
+#   object -> float64 -> Int64
+
+# How to solve it:
+# To make compatible, we first convert the pandas schema by a 2-stage process:
+# (1) Converting via the first yaml document
+# (2) Then finally converting to the second yaml document.
+
+# Why is there this problem? 
+# Normally, converting from object type to int64 type can be done without 
+# errors, provided that the content in the col are indeed integers, and that
+# there are no NaN values.
+# However, if col contains null values, then pandas is unable to convert. 
+# Because the NaN content are of float type and casting NaN to int64 type 
+# leads to error. 
+
+# pandas has an Int64 type (which is different from the np's int64 (notice the
+# capitalisation), which is spefically designed to accept the null-containing 
+# int array. But another problem is that there exists a bug in pd immediately 
+# converting this array into Int64 type leads to an error; claiming that it 
+# cannot convert 'object' (i.e. string) type into Int64 type. However, a 
+# workaround is to convert the object into float as an intermediate type, 
+# then finally converting it to Int64. 
+#
+# The presence of an intermediate conversion step means that I will have 2 
+# YAML documents in this file. 
+
+# The 3rd YAML document is for bigquery schema. 
+
+Title: object
+Artist: object
+Album Artist: object
+Album: object
+Major Genre: object
+Minor Genre: object
+BPM: int64
+Key: object
+Year: int64
+Rating: float64
+Major Language: object
+Minor Language: object
+Gender: object
+DateAdded: object # saving to object because there is weird interaction if save to date then subsequently loading the pandas df in.
+Energy: float64 # nullable
+KPlay: float64 # nullable
+Time: float64
+Bitrate: int64
+Extension: object
+...
+---
+Energy: Int64
+KPlay: Int64
+...
+---
+bq_music_schema: Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING
+...
