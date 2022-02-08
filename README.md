@@ -36,3 +36,9 @@ docker-compose build
 
 ## Run `daily_script.bat` file (or use Windows Task Scheduler to run)
 - Modify `daily_script.bat` file to point to `docker-compose.yml` file
+
+## View the logs (of both modules simultaneously)
+```
+docker-compose -f %DOCKER_COMPOSE_FILEPATH% logs --tail="all"
+```
+- `--tail` to set number of lines of logs to show for each container

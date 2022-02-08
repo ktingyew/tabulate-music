@@ -2,7 +2,7 @@
 
 .devcontainer/
 .vscode/
-src/test_*.py
+src/test_*
 
 utils/__pycache__
 

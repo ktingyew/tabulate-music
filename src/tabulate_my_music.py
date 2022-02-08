@@ -24,10 +24,20 @@ fmtter = logging.Formatter(
     "%Y-%m-%d %H:%M:%S")
 file_handler = logging.FileHandler(LOG_DIR/"music.log", encoding='utf8')
 file_handler.setFormatter(fmtter)
+file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 stdout_handler = logging.StreamHandler(sys.stdout)
 stdout_handler.setFormatter(fmtter)
+stdout_handler.setLevel(logging.DEBUG)
 logger.addHandler(stdout_handler)
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = handle_exception
 
 def main():
 
@@ -54,7 +64,9 @@ def main():
             RECORDS.append(mp3_extractor(LIBRARY_DIR/fpath))
         else:
             logger.warning(
-                f"Invalid file format detected in {LIBRARY_DIR}: {f}")
+                "Invalid file format (not .mp3/.flac) detected in " \
+                + f"{LIBRARY_DIR}: {f}"
+            )
 
     thread_ls = []
     m_ls = os.listdir(LIBRARY_DIR)[:]
@@ -73,8 +85,6 @@ def main():
     df = pd.DataFrame.from_records(RECORDS)
     df = df.astype(pd_schema_init).astype(pd_schema_completion) 
     df['DateAdded'] = pd.to_datetime(df['DateAdded']) 
-
-    #%%
 
     # rename columns to replace whitespaces with underscore 
     # (whitespace in col name is illegal in BigQuery)
@@ -101,7 +111,6 @@ def main():
 
 
     # BigQuery
-
     PROJECT_ID = os.environ['PROJECT_ID']
     DATASET_STORE_ID = os.environ['DATASET_STORE_ID']
     DATASET_LATEST_ID = os.environ['DATASET_LATEST_ID']
@@ -115,7 +124,6 @@ def main():
         ) 
         for f in bq_schema.split(',')
     ]
-
 
     # Save a new table in storage dataset
     tbl_store_ref = bq.table.TableReference(

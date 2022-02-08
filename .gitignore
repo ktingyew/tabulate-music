@@ -4,4 +4,4 @@ utils/__pycache__
 
 .env
 
-src/test_*.py
+src/test_*

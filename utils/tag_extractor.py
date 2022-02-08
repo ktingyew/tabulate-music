@@ -4,47 +4,6 @@ from mutagen.flac import FLAC
 from mutagen.mp3 import MP3, EasyMP3 as EMP3
 
 
-def init_filepath(
-    p: pathlib.Path,
-    root: pathlib.Path
-) -> pathlib.Path :
-    """ Returns absolute file path of pathlib.Path type.
-
-    Accounts for both relative and absolute filepaths.
-    Raise error if file is not a directory.
-
-    Args:
-        p: A Path object of path to file. Either relative, or absolute.
-        root: A Path object of directory of this project (i.e. project root 
-          directory).
-    
-    Returns: 
-        A Path object containing an absolute path. If p is absolute to begin 
-        with, then no changes. If p is relative, then the root is prepended to
-        p and then returned. For example:
-
-        Example 1:
-        >> p=Path("C:/Project/log.txt") # absolute
-        >> root=Path("C:/Project")
-        >> init_dirpath(p, root) 
-        Path("C:/Project/dir/log.txt")
-
-        Example 2:
-        >> p=Path("./log.txt") # relative
-        >> root=Path("C:/Project")
-        >> init_dirpath(p, root) 
-        Path("C:/Project/log.txt")
-
-    Raises:
-        FileNotFoundError: If p is not a valid path to a file
-    """
-    if p.is_dir():
-        raise FileNotFoundError(f"{str(p)} is not a file")
-    if p.is_absolute():
-        return p
-    else:
-        return root/p
-
 def flac_extractor(
     filepath: pathlib.Path
 ) -> dict :
