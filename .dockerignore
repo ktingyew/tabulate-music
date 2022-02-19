@@ -2,9 +2,9 @@
 
 .devcontainer/
 .vscode/
-src/test_*
 
-utils/__pycache__
+src/test_*
+src/__pycache__
 
 .env
 .env.sample

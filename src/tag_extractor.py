@@ -1,13 +1,46 @@
 from datetime import datetime
 import pathlib
+from typing import Tuple
+
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3, EasyMP3 as EMP3
 
+def get_title_albumartist_from_song(
+    filename: str,
+    sep: str = " --- "
+) -> Tuple[str, str] :
+    """ Given filename, split by separator, return title and album artist tags.
 
-def flac_extractor(
+    Example: filename = "You & I --- IU.mp3"; sep = " --- " 
+        It returns ("You & I", "IU")
+
+    Args:
+        filename: String. Only supports "*.flac" or ".mp3"
+
+    Exceptions:
+        ValueError: if filename does not end with "*.flac" or "*.mp3"
+    
+    """
+    supported_format = [".flac", ".mp3"]
+    for ext in supported_format:
+        if filename.endswith(ext):
+            
+            # songname without the extension, 'albart' means 'album artist'
+            title_albart = filename[:-len(ext)]
+
+            # split
+            return tuple(title_albart.split(sep))
+    else:
+        raise ValueError(
+            f"unsupported extension in filename {filename}. " \
+            + f"Only support {supported_format}."
+        )
+
+def song_tag_extractor(
     filepath: pathlib.Path
-) -> dict :
-    """ Extracts tags of interest of a .flac file into a dictionary.
+) -> dict:
+    """ Extracts tags of interest of a music file into a dictionary.
+    Supported types: .flac, .mp3.
 
     This function DOES NOT modify the tags of the file. It is read-only. 
 
@@ -15,19 +48,19 @@ def flac_extractor(
         filepath: A pathlib.Path object of absolute path to .flac file. 
     
     Returns: 
-        A dictionary containing the following (19) keys:
+        A dictionary containing the following (20) keys:
         - Title
         - Artist
-        - Album Artist
+        - Album_Artist
         - Album
-        - Major Genre
-        - Minor Genre
+        - Major_Genre
+        - Minor_Genre
         - BPM
         - Key
         - Year
         - Rating
-        - Major Language
-        - Minor Language
+        - Major_Language
+        - Minor_Language
         - Gender
         - DateAdded
         - Energy
@@ -35,15 +68,29 @@ def flac_extractor(
         - Time
         - Bitrate
         - Extension
+        - Filename
 
         The values of each key in the dictionary (as of current implementation)
         contains are all un-nested.
 
     Raises:
-        ValueError: If filepath does not lead to .flac file.
+        ValueError: If filepath does not lead to supported file extension.
+    
     """
-    if filepath.suffix != '.flac':
-        raise ValueError("filepath does not point to .flac file")
+    if filepath.suffix == '.flac':
+        return flac_extractor(filepath)
+    elif filepath.suffix == '.mp3':
+        return mp3_extractor(filepath)
+    else:
+        raise NotImplementedError("does not support non .flac or .mp3 files")
+
+
+def flac_extractor(
+    filepath: pathlib.Path
+) -> dict :
+    """ Extracts tags of interest of a .flac file into a dictionary.
+
+    """
     
     file = FLAC(f"{filepath}")
     out = {}
@@ -51,7 +98,7 @@ def flac_extractor(
     mapper = {
         'Title': 'title',
         'Artist': 'artist',
-        'Album Artist': 'albumartist',
+        'Album_Artist': 'albumartist',
         'Album': 'album',
         'Genre': 'genre',
         'BPM': 'bpm',
@@ -74,15 +121,15 @@ def flac_extractor(
             
             elif Tag == 'Genre':
                 if len(t) == 2:
-                    out['Major Genre'], out['Minor Genre'] = t[0], t[1]
+                    out['Major_Genre'], out['Minor_Genre'] = t[0], t[1]
                 else:
-                    out['Major Genre'], out['Minor Genre'] = t[0], None
+                    out['Major_Genre'], out['Minor_Genre'] = t[0], None
                     
             elif Tag == 'Language':
                 if len(t) == 2:
-                    out['Major Language'], out['Minor Language'] = t[0], t[1]
+                    out['Major_Language'], out['Minor_Language'] = t[0], t[1]
                 else:
-                    out['Major Language'], out['Minor Language'] = t[0], None
+                    out['Major_Language'], out['Minor_Language'] = t[0], None
 
             elif Tag == 'Rating':
                 out['Rating'] = float(t[0]) / 20.0
@@ -102,7 +149,8 @@ def flac_extractor(
     out['Time'] = file.info.length
     out['Bitrate'] = file.info.bitrate
     out['Extension'] = 'flac'
-             
+    out['Filename'] = filepath.name
+
     return out
 
 def mp3_extractor(
@@ -110,41 +158,7 @@ def mp3_extractor(
 ) -> dict:
     """ Extracts tags of interest of a .mp3 file into a dictionary.
 
-    This function DOES NOT modify the tags of the file. It is read-only. 
-
-    Args:
-        filepath: A pathlib.Path object of absolute path to .mp3 file. 
-    
-    Returns: 
-        A dictionary containing the following (19) keys:
-        - Title
-        - Artist
-        - Album Artist
-        - Album
-        - Major Genre
-        - Minor Genre
-        - BPM
-        - Key
-        - Year
-        - Rating
-        - Major Language
-        - Minor Language
-        - Gender
-        - DateAdded
-        - Energy
-        - KPlay
-        - Time
-        - Bitrate
-        - Extension
-
-        The values of each key in the dictionary (as of current implementation)
-        contains are all un-nested.
-
-    Raises:
-        ValueError: If filepath does not lead to .mp3 file.
     """
-    if filepath.suffix != '.mp3':
-        raise ValueError("filepath does not point to .mp3 file")
     
     out = {}
     
@@ -153,7 +167,7 @@ def mp3_extractor(
     mapper = {
         'Title': 'title',
         'Artist': 'artist',
-        'Album Artist': 'albumartist',
+        'Album_Artist': 'albumartist',
         'Album': 'album',
         'Genre': 'genre',
         'BPM': 'bpm',
@@ -171,15 +185,15 @@ def mp3_extractor(
             
             elif Tag == 'Genre':
                 if len(t) == 2:
-                    out['Major Genre'], out['Minor Genre'] = t[0], t[1]
+                    out['Major_Genre'], out['Minor_Genre'] = t[0], t[1]
                 else:
-                    out['Major Genre'], out['Minor Genre'] = t[0], None
+                    out['Major_Genre'], out['Minor_Genre'] = t[0], None
                     
             elif Tag == 'Language':
                 if len(t) == 2:
-                    out['Major Language'], out['Minor Language'] = t[0], t[1]
+                    out['Major_Language'], out['Minor_Language'] = t[0], t[1]
                 else:
-                    out['Major Language'], out['Minor Language'] = t[0], None
+                    out['Major_Language'], out['Minor_Language'] = t[0], None
                 
             elif Tag == 'Rating':
                 out[Tag] = t[0] / 20.0
@@ -231,5 +245,6 @@ def mp3_extractor(
     out['Time'] = file.info.length
     out['Bitrate'] = file.info.bitrate
     out['Extension'] = 'mp3'
+    out['Filename'] = filepath.name
              
     return out

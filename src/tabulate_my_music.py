@@ -3,15 +3,16 @@ import logging
 import os
 from pathlib import Path
 import sys
-import threading
 import yaml
 
 from google.cloud import bigquery as bq
 import pandas as pd
 
-# Allow import from parent folder
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from utils import flac_extractor, mp3_extractor
+from tag_extractor import song_tag_extractor
+from date_utils import (
+    find_file_with_latest_dt_in_dir,
+    num_mins_elapsed_since_last_modified
+)
 
 LOG_DIR = Path(os.environ['LOGS_TARGET'])
 LIBRARY_DIR = Path(os.environ['LIBRARY_TARGET'])
@@ -55,28 +56,41 @@ def main():
         pd_schema_completion = next(yaml_gen) # schema 2
         bq_schema = next(yaml_gen)['bq_music_schema']
 
-    # Load music files' tags to DataFrame with threading
+    # Get latest cache, load as df
+    fpath = find_file_with_latest_dt_in_dir(
+        directory=REPORT_DIR,
+        re_search=r"\b20.*-\d\d"
+    )
+
+    cache = pd.read_json(
+        fpath, 
+        orient='records', 
+        convert_dates=False, 
+        lines=True) 
+
+    cache_indexed = cache.set_index(
+        keys='Filename',
+        drop=False,
+        append=False
+    )
+
     RECORDS = []
-    def append_record(fpath):
-        if fpath.endswith('.flac'):
-            RECORDS.append(flac_extractor(LIBRARY_DIR/fpath))
-        elif fpath.endswith('.mp3'):
-            RECORDS.append(mp3_extractor(LIBRARY_DIR/fpath))
-        else:
-            logger.warning(
-                "Invalid file format (not .mp3/.flac) detected in " \
-                + f"{LIBRARY_DIR}: {f}"
-            )
+    for f in os.listdir(LIBRARY_DIR)[:]:
 
-    thread_ls = []
-    m_ls = os.listdir(LIBRARY_DIR)[:]
-    for f in m_ls:
-        th = threading.Thread(target=append_record, args=(f,))
-        thread_ls.append(th)
-        th.start()
+        try:
+            cached_tags: dict = cache_indexed.loc[f].to_dict()
 
-    for th in thread_ls:
-        th.join()
+            if num_mins_elapsed_since_last_modified(LIBRARY_DIR/f) < 5 * 24 * 60:
+                RECORDS.append(song_tag_extractor(LIBRARY_DIR/f))
+
+            else:
+                RECORDS.append(cached_tags)
+
+        except KeyError: # not cached
+            RECORDS.append(song_tag_extractor(LIBRARY_DIR/f))
+            logger.debug(f"Possible new song found: {f}")
+
+
 
     logger.info(
         f"Extracted {len(RECORDS)} "
@@ -86,15 +100,11 @@ def main():
     df = df.astype(pd_schema_init).astype(pd_schema_completion) 
     df['DateAdded'] = pd.to_datetime(df['DateAdded']) 
 
-    # rename columns to replace whitespaces with underscore 
-    # (whitespace in col name is illegal in BigQuery)
-    df.columns = [ col.replace(' ', '_') for col in df.columns.tolist() ]
-
     # Check for missing values in DataFrame
     for c in [
         'Title', 'Artist', 'Album_Artist', 'Album', 'Major_Genre', 'BPM', 
         'Key', 'Year', 'Rating', 'Major_Language' , 'Gender', 'DateAdded', 
-        'Time', 'Bitrate', 'Extension'
+        'Time', 'Bitrate', 'Extension', 'Filename'
         ]:
         if len(df[df[c].isna()]) > 0:
             # filter records with missing values in column c

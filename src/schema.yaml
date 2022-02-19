@@ -37,16 +37,16 @@
 
 Title: object
 Artist: object
-Album Artist: object
+Album_Artist: object
 Album: object
-Major Genre: object
-Minor Genre: object
+Major_Genre: object
+Minor_Genre: object
 BPM: int64
 Key: object
 Year: int64
 Rating: float64
-Major Language: object
-Minor Language: object
+Major_Language: object
+Minor_Language: object
 Gender: object
 DateAdded: object # saving to object because there is weird interaction if save to date then subsequently loading the pandas df in.
 Energy: float64 # nullable
@@ -54,11 +54,12 @@ KPlay: float64 # nullable
 Time: float64
 Bitrate: int64
 Extension: object
+Filename: object
 ...
 ---
 Energy: Int64
 KPlay: Int64
 ...
 ---
-bq_music_schema: Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING
+bq_music_schema: Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING,Filename:STRING
 ...
