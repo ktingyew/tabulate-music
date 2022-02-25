@@ -74,21 +74,31 @@ def main():
         append=False
     )
 
+    full_scan_enabled = True
+
+    if full_scan_enabled:
+        logger.info("Full Scan initiated. Not using cache.")
+
     RECORDS = []
     for f in os.listdir(LIBRARY_DIR)[:]:
 
-        try:
-            cached_tags: dict = cache_indexed.loc[f].to_dict()
-
-            if num_mins_elapsed_since_last_modified(LIBRARY_DIR/f) < 5 * 24 * 60:
-                RECORDS.append(song_tag_extractor(LIBRARY_DIR/f))
-
-            else:
-                RECORDS.append(cached_tags)
-
-        except KeyError: # not cached
+        if full_scan_enabled:
             RECORDS.append(song_tag_extractor(LIBRARY_DIR/f))
-            logger.debug(f"Possible new song found: {f}")
+
+        else: # use cache 
+
+            try:
+                cached_tags: dict = cache_indexed.loc[f].to_dict()
+
+                if num_mins_elapsed_since_last_modified(LIBRARY_DIR/f) < 5 * 24 * 60:
+                    RECORDS.append(song_tag_extractor(LIBRARY_DIR/f))
+
+                else:
+                    RECORDS.append(cached_tags)
+
+            except KeyError: # not cached
+                RECORDS.append(song_tag_extractor(LIBRARY_DIR/f))
+                logger.debug(f"Possible new song found: {f}")
 
 
 
@@ -100,7 +110,7 @@ def main():
     df = df.astype(pd_schema_init).astype(pd_schema_completion) 
     df['DateAdded'] = pd.to_datetime(df['DateAdded']) 
 
-    # Check for missing values in DataFrame
+    # Check for na values in DataFrame (read-only)
     for c in [
         'Title', 'Artist', 'Album_Artist', 'Album', 'Major_Genre', 'BPM', 
         'Key', 'Year', 'Rating', 'Major_Language' , 'Gender', 'DateAdded', 
@@ -135,18 +145,23 @@ def main():
         for f in bq_schema.split(',')
     ]
 
-    # Save a new table in storage dataset
-    tbl_store_ref = bq.table.TableReference(
-        dataset_ref=bq.dataset.DatasetReference(
-            project=PROJECT_ID, 
-            dataset_id=DATASET_STORE_ID
-        ), 
-        table_id=dt # current time as the table id
-    )
-    tbl_store = bq.Table(tbl_store_ref, schema=schema) 
-    bq_client.create_table(tbl_store)
-    bq_client.load_table_from_dataframe(df, tbl_store_ref)
-    logger.info(f"load_table_from_dataframe to {tbl_store} successful")
+    # Save a new table in storage dataset (if enabled)
+    store_new_table_enabled = True
+
+    if store_new_table_enabled:
+        logger.info("Storing new table to BQ enabled.")
+
+        tbl_store_ref = bq.table.TableReference(
+            dataset_ref=bq.dataset.DatasetReference(
+                project=PROJECT_ID, 
+                dataset_id=DATASET_STORE_ID
+            ), 
+            table_id=dt # current time as the table id
+        )
+        tbl_store = bq.Table(tbl_store_ref, schema=schema) 
+        bq_client.create_table(tbl_store)
+        bq_client.load_table_from_dataframe(df, tbl_store_ref)
+        logger.info(f"load_table_from_dataframe to {tbl_store} successful")
 
 
     # Delete then upload new table in music dataset
@@ -171,4 +186,6 @@ def main():
 
 
 if __name__ == '__main__':
+
+    
     main()
