@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 import logging
 import os
@@ -18,20 +19,6 @@ LOG_DIR = Path(os.environ['LOGS_TARGET'])
 LIBRARY_DIR = Path(os.environ['LIBRARY_TARGET'])
 REPORT_DIR = Path(os.environ['REPORT_TARGET'])
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-fmtter = logging.Formatter(
-    "[%(asctime)s]; %(levelname)s; %(name)s; %(message)s", 
-    "%Y-%m-%d %H:%M:%S")
-file_handler = logging.FileHandler(LOG_DIR/"music.log", encoding='utf8')
-file_handler.setFormatter(fmtter)
-file_handler.setLevel(logging.DEBUG)
-logger.addHandler(file_handler)
-stdout_handler = logging.StreamHandler(sys.stdout)
-stdout_handler.setFormatter(fmtter)
-stdout_handler.setLevel(logging.DEBUG)
-logger.addHandler(stdout_handler)
-
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
@@ -41,12 +28,6 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 def main():
-
-    logger.info("STARTED: =========================================")
-
-    # Authenticate with BigQuery
-    bq_client = bq.Client()
-    logger.info(f"BigQuery. Successfully authenticated")
 
     # Load Schemas
     with open("./src/schema.yaml", "r") as stream:
@@ -76,7 +57,7 @@ def main():
 
     full_scan_enabled = True
 
-    if full_scan_enabled:
+    if FLAGS.fullscan:
         logger.info("Full Scan initiated. Not using cache.")
 
     RECORDS = []
@@ -145,10 +126,13 @@ def main():
         for f in bq_schema.split(',')
     ]
 
-    # Save a new table in storage dataset (if enabled)
-    store_new_table_enabled = True
+    if not FLAGS.nobq:
 
-    if store_new_table_enabled:
+        # Authenticate with BigQuery
+        bq_client = bq.Client() # TODO: use production credentials
+        logger.info(f"BigQuery. Successfully authenticated")
+
+
         logger.info("Storing new table to BQ enabled.")
 
         tbl_store_ref = bq.table.TableReference(
@@ -164,28 +148,52 @@ def main():
         logger.info(f"load_table_from_dataframe to {tbl_store} successful")
 
 
-    # Delete then upload new table in music dataset
-    tbl_latest_ref = bq.table.TableReference(
-        dataset_ref=bq.dataset.DatasetReference(
-            project=PROJECT_ID, 
-            dataset_id=DATASET_LATEST_ID
-        ), 
-        table_id=TABLE_MUSIC_ID
-    )
-    tbl_latest = bq.Table(tbl_latest_ref, schema=schema) 
-    bq_client.delete_table(tbl_latest, not_found_ok=True)
-    logger.info(f"{tbl_latest} deleted")
-    bq_client.create_table(tbl_latest)
-    logger.info(f"{tbl_latest} recreated")
-    bq_client.load_table_from_dataframe(df, tbl_latest_ref)
-    logger.info(f"load_table_from_dataframe to {tbl_latest} successful")
+        # Delete then upload new table in music dataset
+        tbl_latest_ref = bq.table.TableReference(
+            dataset_ref=bq.dataset.DatasetReference(
+                project=PROJECT_ID, 
+                dataset_id=DATASET_LATEST_ID
+            ), 
+            table_id=TABLE_MUSIC_ID
+        )
+        tbl_latest = bq.Table(tbl_latest_ref, schema=schema) 
+        bq_client.delete_table(tbl_latest, not_found_ok=True)
+        logger.info(f"{tbl_latest} deleted")
+        bq_client.create_table(tbl_latest)
+        logger.info(f"{tbl_latest} recreated")
+        bq_client.load_table_from_dataframe(df, tbl_latest_ref)
+        logger.info(f"load_table_from_dataframe to {tbl_latest} successful")
     
-
-    logger.info("COMPLETED: =======================================")
-
 
 
 if __name__ == '__main__':
 
+    # Parse arguments
+    parser = argparse.ArgumentParser(description = 'Say hello')
+    parser.add_argument('--fullscan', action="store_true", help='Option: Do not use cache when scanning')
+    parser.add_argument('--nobq', action="store_true", help='Option: Do not upload to BigQuery')
+    parser.add_argument('--nolocal', action="store_true", help='Option: Do not save to local disk')
+    parser.add_argument('--nowritelog', action="store_true", help='Option: Do not write to log file')
+    FLAGS = parser.parse_args()
     
+    # Logging configuration
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    fmtter = logging.Formatter(
+        "[%(asctime)s]; %(levelname)8s; %(name)s; %(message)s", 
+        "%Y-%m-%d %H:%M:%S")
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(fmtter)
+    stdout_handler.setLevel(logging.DEBUG)
+    logger.addHandler(stdout_handler)
+    if not FLAGS.nowritelog:
+        file_handler = logging.FileHandler(LOG_DIR/"music.log", encoding='utf8')
+        file_handler.setFormatter(fmtter)
+        file_handler.setLevel(logging.DEBUG)
+        logger.addHandler(file_handler)
+    else: logger.warning("Write to logs disabled. ")
+
+    # Run main
+    logger.info(f"STARTED | flags: {FLAGS}")
     main()
+    logger.info("COMPLETED |")
