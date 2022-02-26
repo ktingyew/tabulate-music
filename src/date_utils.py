@@ -8,6 +8,7 @@ def find_file_with_latest_dt_in_dir(
     directory: pathlib.Path,
     re_search: str = r"\b20.*00",
     dt_formatter: str = "%Y-%m-%d %H-%M-%S",
+    ext = "*.jsonl"
 
 ) -> pathlib.Path :
     """ Identify file in dir with the most recent dt in its filename
@@ -17,7 +18,7 @@ def find_file_with_latest_dt_in_dir(
     """
 
     dt_ls = []
-    for f in glob.glob(str(directory/'*.json')):
+    for f in glob.glob(str(directory/ext)):
         dt_ls.append(
             datetime.strptime(
                 re.search(re_search, f).group(),

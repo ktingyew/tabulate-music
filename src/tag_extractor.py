@@ -5,36 +5,6 @@ from typing import Tuple
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3, EasyMP3 as EMP3
 
-def get_title_albumartist_from_song(
-    filename: str,
-    sep: str = " --- "
-) -> Tuple[str, str] :
-    """ Given filename, split by separator, return title and album artist tags.
-
-    Example: filename = "You & I --- IU.mp3"; sep = " --- " 
-        It returns ("You & I", "IU")
-
-    Args:
-        filename: String. Only supports "*.flac" or ".mp3"
-
-    Exceptions:
-        ValueError: if filename does not end with "*.flac" or "*.mp3"
-    
-    """
-    supported_format = [".flac", ".mp3"]
-    for ext in supported_format:
-        if filename.endswith(ext):
-            
-            # songname without the extension, 'albart' means 'album artist'
-            title_albart = filename[:-len(ext)]
-
-            # split
-            return tuple(title_albart.split(sep))
-    else:
-        raise ValueError(
-            f"unsupported extension in filename {filename}. " \
-            + f"Only support {supported_format}."
-        )
 
 def song_tag_extractor(
     filepath: pathlib.Path
@@ -49,26 +19,26 @@ def song_tag_extractor(
     
     Returns: 
         A dictionary containing the following (20) keys:
-        - Title
-        - Artist
-        - Album_Artist
-        - Album
-        - Major_Genre
-        - Minor_Genre
-        - BPM
-        - Key
-        - Year
-        - Rating
-        - Major_Language
-        - Minor_Language
-        - Gender
-        - DateAdded
-        - Energy
-        - KPlay
-        - Time
-        - Bitrate
-        - Extension
-        - Filename
+        - Title: str
+        - Artist: str
+        - Album_Artist: str
+        - Album: str
+        - Major_Genre: str
+        - Minor_Genre: str
+        - BPM: str
+        - Key: str
+        - Year: str
+        - Rating: float
+        - Major_Language: str
+        - Minor_Language: str
+        - Gender: str
+        - DateAdded: str
+        - Energy: str
+        - KPlay: str
+        - Time: float
+        - Bitrate: int
+        - Extension: str
+        - Filename: str
 
         The values of each key in the dictionary (as of current implementation)
         contains are all un-nested.
@@ -78,14 +48,14 @@ def song_tag_extractor(
     
     """
     if filepath.suffix == '.flac':
-        return flac_extractor(filepath)
+        return _flac_extractor(filepath)
     elif filepath.suffix == '.mp3':
-        return mp3_extractor(filepath)
+        return _mp3_extractor(filepath)
     else:
         raise NotImplementedError("does not support non .flac or .mp3 files")
 
 
-def flac_extractor(
+def _flac_extractor(
     filepath: pathlib.Path
 ) -> dict :
     """ Extracts tags of interest of a .flac file into a dictionary.
@@ -153,7 +123,7 @@ def flac_extractor(
 
     return out
 
-def mp3_extractor(
+def _mp3_extractor(
     filepath: pathlib.Path
 ) -> dict:
     """ Extracts tags of interest of a .mp3 file into a dictionary.

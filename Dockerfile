@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["/usr/local/bin/python", "./src/tabulate_my_music.py"]
+ENTRYPOINT ["/usr/local/bin/python", "./src/tabulate_my_music.py"]
