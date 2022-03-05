@@ -3,11 +3,12 @@ from datetime import datetime
 import logging
 import os
 from pathlib import Path
-import pandas as pd
 import sys
 import yaml
 
 from google.cloud import bigquery as bq
+import pandas as pd
+
 from scan_library import full_scan, cached_scan, check_df_na
 
 LOG_DIR = Path(os.environ['LOGS_TARGET'])
@@ -39,19 +40,19 @@ def main():
     # Save to Local: in newline delimited json format
     if not FLAGS.nolocal:
         df_out_path = f"{REPORT_DIR}/report {dt_now_str}.jsonl"
-        df.to_json(df_out_path, orient='records', lines=True)
+        df.to_json(df_out_path, force_ascii=False, orient='records', lines=True)
         logger.info(f"Saved df as json file to {df_out_path}")
-
-    # BigQuery
-    PROJECT_ID = os.environ['PROJECT_ID']
-    DATASET_STORE_ID = os.environ['DATASET_STORE_ID']
-    DATASET_LATEST_ID = os.environ['DATASET_LATEST_ID']
-    TABLE_MUSIC_ID = os.environ['TABLE_MUSIC_ID']
 
 
     if not FLAGS.nobq:
 
         logger.info("Storing new table to BQ enabled.")
+
+        # BigQuery env vars
+        PROJECT_ID = os.environ['PROJECT_ID']
+        DATASET_STORE_ID = os.environ['DATASET_STORE_ID']
+        DATASET_LATEST_ID = os.environ['DATASET_LATEST_ID']
+        TABLE_MUSIC_ID = os.environ['TABLE_MUSIC_ID']
 
         # Authenticate with BigQuery
         bq_client = bq.Client() # TODO: use production credentials
