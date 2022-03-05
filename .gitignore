@@ -3,5 +3,5 @@
 
 .env
 
-src/test_*
+src/test*
 src/__pycache__

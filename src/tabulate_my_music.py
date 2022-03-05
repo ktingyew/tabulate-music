@@ -50,7 +50,6 @@ def main():
 
         # BigQuery env vars
         PROJECT_ID = os.environ['PROJECT_ID']
-        DATASET_STORE_ID = os.environ['DATASET_STORE_ID']
         DATASET_LATEST_ID = os.environ['DATASET_LATEST_ID']
         TABLE_MUSIC_ID = os.environ['TABLE_MUSIC_ID']
 
@@ -76,19 +75,6 @@ def main():
         # Modify DateAdded type from "object" to "DateTime"
         # schema in bq is DATE; requires this to be in pd's datetime format
         df['DateAdded'] = pd.to_datetime(df['DateAdded'])
-
-        # Add new table
-        tbl_store_ref = bq.table.TableReference(
-            dataset_ref=bq.dataset.DatasetReference(
-                project=PROJECT_ID, 
-                dataset_id=DATASET_STORE_ID
-            ), 
-            table_id=dt_now_str # current time as the table id
-        )
-        tbl_store = bq.Table(tbl_store_ref, schema=schema) 
-        bq_client.create_table(tbl_store)
-        bq_client.load_table_from_dataframe(df, tbl_store_ref)
-        logger.info(f"load_table_from_dataframe to {tbl_store} successful")
 
         # Delete then upload new table in music dataset
         tbl_latest_ref = bq.table.TableReference(
