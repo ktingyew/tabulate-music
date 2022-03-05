@@ -6,8 +6,8 @@ import yaml
 
 import pandas as pd
 
-from date_utils import find_file_with_latest_dt_in_dir, num_mins_elapsed_since_last_modified
-from tag_extractor import song_tag_extractor
+from .date_utils import find_file_with_latest_dt_in_dir, num_mins_elapsed_since_last_modified
+from .tag_extractor import song_tag_extractor
 
 logger = logging.getLogger("main.scan_library")
 

@@ -3,7 +3,7 @@
 .devcontainer/
 .vscode/
 
-src/test_*
+src/test*
 src/__pycache__
 
 .env

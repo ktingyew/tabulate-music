@@ -1,6 +1,6 @@
 import argparse
 from datetime import datetime
-import logging
+import logging.config
 import os
 from pathlib import Path
 import sys
@@ -9,7 +9,7 @@ import yaml
 from google.cloud import bigquery as bq
 import pandas as pd
 
-from scan_library import full_scan, cached_scan, check_df_na
+from src.scan_library import full_scan, cached_scan, check_df_na
 
 LOG_DIR = Path(os.environ['LOGS_TARGET'])
 LIBRARY_DIR = Path(os.environ['LIBRARY_TARGET'])
@@ -50,14 +50,17 @@ def main():
 
         # BigQuery env vars
         PROJECT_ID = os.environ['PROJECT_ID']
-        DATASET_LATEST_ID = os.environ['DATASET_LATEST_ID']
-        TABLE_MUSIC_ID = os.environ['TABLE_MUSIC_ID']
+        DATASET_ID = os.environ['DATASET_ID']
+        TABLE_ID = os.environ['TABLE_ID']
+
+        # Construct uri string to BigQuery table
+        TABLE_REF_STR: str = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
 
         # Authenticate with BigQuery
         bq_client = bq.Client() # TODO: use production credentials
         logger.info(f"BigQuery. Successfully authenticated")
 
-        # Load Schema from yaml file
+        # Load schema from yaml file
         with open("./src/schema.yaml", "r") as stream:
             yaml_gen = yaml.safe_load_all(stream) # load generator
             _ = next(yaml_gen)
@@ -80,9 +83,9 @@ def main():
         tbl_latest_ref = bq.table.TableReference(
             dataset_ref=bq.dataset.DatasetReference(
                 project=PROJECT_ID, 
-                dataset_id=DATASET_LATEST_ID
+                dataset_id=DATASET_ID
             ), 
-            table_id=TABLE_MUSIC_ID
+            table_id=TABLE_ID
         )
         tbl_latest = bq.Table(tbl_latest_ref, schema=schema) 
         bq_client.delete_table(tbl_latest, not_found_ok=True)
@@ -104,22 +107,15 @@ if __name__ == '__main__':
     parser.add_argument('--nowritelog', action="store_true", help='Option: Do not write to log file')
     FLAGS = parser.parse_args()
     
-    # Logging configuration
-    logger = logging.getLogger("main")
-    logger.setLevel(logging.DEBUG)
-    fmtter = logging.Formatter(
-        "[%(asctime)s]| %(levelname)8s| %(name)20s| %(message)s", 
-        "%Y-%m-%d %H:%M:%S")
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setFormatter(fmtter)
-    stdout_handler.setLevel(logging.DEBUG)
-    logger.addHandler(stdout_handler)
-    if not FLAGS.nowritelog:
-        file_handler = logging.FileHandler(LOG_DIR/"music.log", encoding='utf8')
-        file_handler.setFormatter(fmtter)
-        file_handler.setLevel(logging.DEBUG)
-        logger.addHandler(file_handler)
-    else: logger.warning("Write to logs disabled. ")
+    # Logging configuration using file
+    logging.config.fileConfig(
+        fname="logging.config", 
+        defaults={'logfilename': LOG_DIR/'music.log'}
+    )
+    logger = logging.getLogger('')
+    if FLAGS.nowritelog:
+        logger.handlers = [ h for h in logger.handlers if not isinstance(h, logging.FileHandler) ]
+        logger.warning("Write to logs disabled. ")
 
     # Replace sys.excepthook with one that also logs critical-level
     def my_excepthook(exc_type, exc_value, exc_traceback):

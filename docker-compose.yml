@@ -7,7 +7,6 @@ services:
       # BigQuery variables
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
       - PROJECT_ID=${PROJECT_ID}
-      - DATASET_STORE_ID=${DATASET_STORE_ID}
       - DATASET_LATEST_ID=${DATASET_LATEST_ID}
       - TABLE_MUSIC_ID=${TABLE_MUSIC_ID}
       # Bind mount targets
