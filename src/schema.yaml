@@ -61,5 +61,5 @@ Energy: Int64
 KPlay: Int64
 ...
 ---
-bq_music_schema: Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING,Filename:STRING
+bq_music_schema: Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING,Filename:STRING,Report_Time:DATETIME
 ...

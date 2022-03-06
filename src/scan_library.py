@@ -31,7 +31,7 @@ def check_df_na(
     for col in [
         'Title', 'Artist', 'Album_Artist', 'Album', 'Major_Genre', 'BPM', 
         'Key', 'Year', 'Rating', 'Major_Language' , 'Gender', 'DateAdded', 
-        'Time', 'Bitrate', 'Extension', 'Filename'
+        'Time', 'Bitrate', 'Extension', 'Filename', 'Report_Time'
         ]:
         if len(df[df[col].isna()]) > 0:
             # filter records with missing values in column c

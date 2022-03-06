@@ -38,14 +38,18 @@ def replace_bq_table(
     df: pd.DataFrame
 ) -> None :
 
-    # Modify DateAdded type from "object" to "DateTime"
+    # Modify DateAdded and Report_Time type from "object" to "DateTime"
     # schema in bq is DATE; requires this to be in pd's datetime format
     df['DateAdded'] = pd.to_datetime(df['DateAdded'])
+    df['Report_Time'] = pd.to_datetime(df['Report_Time'])
 
     bq_client.load_table_from_dataframe(
         dataframe=df, 
         destination=TABLE_REF_STR,
-        job_config=bq.job.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+        job_config=bq.job.LoadJobConfig(
+            schema=schema,
+            write_disposition="WRITE_TRUNCATE"
+        )
     )
     logger.info(f"load_table_from_dataframe to {TABLE_REF_STR} successful")
 

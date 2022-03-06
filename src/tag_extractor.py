@@ -1,6 +1,5 @@
 from datetime import datetime
 import pathlib
-from typing import Tuple
 
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3, EasyMP3 as EMP3
@@ -39,6 +38,7 @@ def song_tag_extractor(
         - Bitrate: int
         - Extension: str
         - Filename: str
+        - Report_Time: str
 
         The values of each key in the dictionary (as of current implementation)
         contains are all un-nested.
@@ -120,6 +120,8 @@ def _flac_extractor(
     out['Bitrate'] = file.info.bitrate
     out['Extension'] = 'flac'
     out['Filename'] = filepath.name
+
+    out['Report_Time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     return out
 
@@ -216,5 +218,7 @@ def _mp3_extractor(
     out['Bitrate'] = file.info.bitrate
     out['Extension'] = 'mp3'
     out['Filename'] = filepath.name
+
+    out['Report_Time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
              
     return out
