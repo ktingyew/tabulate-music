@@ -25,11 +25,17 @@ def check_df_na(
     """ Check for na values in music DataFrame on a certain list of columns.
     This function is read-only; does not modify df contents.
 
+    Ommited cols are:
+        - Minor_Genre
+        - Minor_Language
+        - Energy
+        - KPlay
+
     When na value is found, it is logged.   
     """
 
     for col in [
-        'Title', 'Artist', 'Album_Artist', 'Album', 'Major_Genre', 'BPM', 
+        'ID', 'Title', 'Artist', 'Album_Artist', 'Album', 'Major_Genre', 'BPM', 
         'Key', 'Year', 'Rating', 'Major_Language' , 'Gender', 'DateAdded', 
         'Time', 'Bitrate', 'Extension', 'Filename', 'Report_Time'
         ]:
@@ -47,6 +53,7 @@ def full_scan(
     """
 
     Schema:
+        - ID: int64
         - Title: object
         - Artist: object
         - Album_Artist: object
@@ -67,10 +74,16 @@ def full_scan(
         - Bitrate: int64
         - Extension: object
         - Filename: object
+        - Report_Time: object
 
     Remarks:
         - `DateAdded` type as `object` is intentional
-            - It will be changed to datetime prior to uploading to bq
+            - It will be changed to `DATE` type prior to uploading to bq
+            - Reason not to change to date type immediately, because 
+              preserving string/object type allows for readability when 
+              saving as .jsonl file
+        - `Report_Time` type as `object` is intentional
+            - It will be changed to `DATETIME` type prior to uploading to bq
             - Reason not to change to datetime type immediately, because 
               preserving string/object type allows for readability when 
               saving as .jsonl file

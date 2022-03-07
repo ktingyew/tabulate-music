@@ -4,9 +4,11 @@
 .vscode/
 
 src/test*
-src/__pycache__
+*__pycache__*
 
 .env
 .env.sample
 
 docker-compose.yml
+
+*.drawio*

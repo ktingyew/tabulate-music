@@ -17,7 +17,8 @@ def song_tag_extractor(
         filepath: A pathlib.Path object of absolute path to .flac file. 
     
     Returns: 
-        A dictionary containing the following (20) keys:
+        A dictionary containing the following (22) keys:
+        - ID: int
         - Title: str
         - Artist: str
         - Album_Artist: str
@@ -66,6 +67,7 @@ def _flac_extractor(
     out = {}
     
     mapper = {
+        'ID': 'song_id',
         'Title': 'title',
         'Artist': 'artist',
         'Album_Artist': 'albumartist',
@@ -79,7 +81,7 @@ def _flac_extractor(
         'Gender': 'copyright',
         'DateAdded': 'encodingtime',
         'Energy': 'energy',
-        'KPlay': 'kplay'
+        'KPlay': 'kplay',
     }
     
     for Tag in mapper.keys():
@@ -179,7 +181,9 @@ def _mp3_extractor(
 
     out['Energy'] = out['DateAdded'] = out['KPlay'] = None
     for t in file.tags.getall('TXXX'):
-        if   t.desc == 'EnergyLevel':
+        if   t.desc == "SONG_ID":
+            out['ID'] = t.text[0]
+        elif t.desc == 'EnergyLevel':
             out['Energy'] = t.text[0]
         elif t.desc == 'ENCODINGTIME':
             out['DateAdded'] = datetime.strptime(t.text[0], '%d/%m/%Y').strftime("%Y-%m-%d")

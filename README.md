@@ -6,10 +6,8 @@ Performs analytics and visualisations of music listening activities.
 
 # Project Structure
 
-This repo contains a docker-compose file for 2 Docker modules:
+This repo (`tabulate-music`) is but one-half. The other half (`tabulate-scrobble`) is located in another repo, [here](https://github.com/ktingyew/tabulate-scrobble).
 
-1. `tabulate-music`, located in this repo
-2. `tabulate-scrobble`, located in another repo, [here](https://github.com/ktingyew/tabulate-scrobble)
 
 
 # tabulate-music (this repo)
@@ -20,7 +18,9 @@ Python script housed in Docker container to allow me to extract .mp3 and .flac m
 
 # Prerequisites
 
-1. Need a GCP Service Account with credentials
+0. A folder of songs with the appropriate tags
+1. Need a GCP Service Account with credentials to access the following resource/s:
+    - BigQuery
 2. [last.fm](https://www.last.fm/) account with API key
 
 # To Run
@@ -37,8 +37,8 @@ docker-compose build
 ## Run `daily_script.bat` file (or use Windows Task Scheduler to run)
 - Modify `daily_script.bat` file to point to `docker-compose.yml` file
 
-## View the logs (of both modules simultaneously)
+## View logs
 ```
-docker-compose -f %DOCKER_COMPOSE_FILEPATH% logs --tail="all"
+docker logs <name-of-container>
 ```
 - `--tail` to set number of lines of logs to show for each container

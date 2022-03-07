@@ -35,6 +35,7 @@
 
 # The 3rd YAML document is for bigquery schema. 
 
+ID: int64
 Title: object
 Artist: object
 Album_Artist: object
@@ -55,11 +56,12 @@ Time: float64
 Bitrate: int64
 Extension: object
 Filename: object
+Report_Time: object
 ...
 ---
 Energy: Int64
 KPlay: Int64
 ...
 ---
-bq_music_schema: Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING,Filename:STRING,Report_Time:DATETIME
+bq_music_schema: ID:INTEGER,Title:STRING,Artist:STRING,Album_Artist:STRING,Album:STRING,Major_Genre:STRING,Minor_Genre:STRING,BPM:INTEGER,Key:STRING,Year:INTEGER,Rating:FLOAT,Major_Language:STRING,Minor_Language:STRING,Gender:STRING,DateAdded:DATE,Energy:INTEGER,KPlay:INTEGER,Time:FLOAT,Bitrate:INTEGER,Extension:STRING,Filename:STRING,Report_Time:DATETIME
 ...
