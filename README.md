@@ -6,22 +6,23 @@ Performs analytics and visualisations of music listening activities.
 
 # Project Structure
 
-This repo (`tabulate-music`) is but one-half. The other half (`tabulate-scrobble`) is located in another repo, [here](https://github.com/ktingyew/tabulate-scrobble).
+This repo (`tabulate-music`) is but one-half. The other half (`scrobble-cloud-func`) is located in another repo, [here](https://github.com/ktingyew/scrobble-cloud-func).
 
 
 
 # tabulate-music (this repo)
 
-Python script housed in Docker container to allow me to extract .mp3 and .flac music tags and uploads to BigQuery, a serverless data warehouse in Google Cloud Platform (GCP).
+Python script housed in Docker container that extracts music tags of [.mp3](https://en.wikipedia.org/wiki/ID3) and [.flac](https://en.wikipedia.org/wiki/Vorbis_comment) files in my library into a table (snapshot). This table is then uploaded to [BigQuery](https://cloud.google.com/bigquery), a serverless data warehouse in Google Cloud Platform (GCP).
 
+Additionally, this script records diffs from snapshot to snapshot, which effectively allows for tracking of tag changes in music file over a time period (including adding and deleting of new songs).
 
 
 # Prerequisites
 
-0. A folder of songs with the appropriate tags
+0. A folder of songs with the appropriate tags (see `src/schema.yaml`)
 1. Need a GCP Service Account with credentials to access the following resource/s:
     - BigQuery
-2. [last.fm](https://www.last.fm/) account with API key
+2. [last.fm](https://www.last.fm/) account with API key (for the other repo, `scrobble-cloud-func`)
 
 # To Run
 

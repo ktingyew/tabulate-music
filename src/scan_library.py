@@ -6,7 +6,7 @@ import yaml
 
 import pandas as pd
 
-from .date_utils import find_file_with_latest_dt_in_dir, num_mins_elapsed_since_last_modified
+from .date_utils import num_mins_elapsed_since_last_modified, get_recent_df
 from .tag_extractor import song_tag_extractor
 
 logger = logging.getLogger("main.scan_library")
@@ -144,7 +144,14 @@ def cached_scan(
         pd.DataFrame containing the songs and their tags
     """
 
-    cache = _get_cache_df(path_to_report_dir)
+    cache = get_recent_df(path_to_report_dir)
+    cache = cache.set_index(
+        keys='Filename',
+        drop=False,
+        append=False
+    )
+
+    logger.debug(f"cache retrieved from {path_to_report_dir}")
 
     records = []
 
@@ -170,32 +177,3 @@ def cached_scan(
 
     return df
 
-
-
-def _get_cache_df(
-    path_to_report_dir: pathlib.Path
-) -> pd.DataFrame :
-    """
-    """
-
-    # Get latest cache, load as df
-    fpath = find_file_with_latest_dt_in_dir(
-        directory=path_to_report_dir,
-        re_search=r"\b20.*-\d\d",
-        ext="*.jsonl"
-    )
-    logger.debug(f"Cache retrieved from {fpath}")
-
-    cache = pd.read_json(
-        fpath, 
-        orient='records', 
-        convert_dates=False, 
-        lines=True) 
-
-    cache = cache.set_index(
-        keys='Filename',
-        drop=False,
-        append=False
-    )
-
-    return cache

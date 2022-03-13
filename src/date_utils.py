@@ -1,8 +1,35 @@
 from datetime import datetime
 import glob
+import logging
 import os
 import pathlib
 import re
+
+import pandas as pd
+
+logger = logging.getLogger("main.date_utils")
+
+def get_recent_df(directory=None) -> pd.DataFrame :
+
+    if directory is None:
+        pass
+
+    # get latest dt
+    fpath = find_file_with_latest_dt_in_dir(
+        directory=directory,
+        re_search=r"\b20.*-\d\d",
+        ext="*.jsonl"
+    )
+
+    # get latest df
+    df = pd.read_json(
+        fpath, 
+        orient='records', 
+        convert_dates=False, 
+        lines=True) 
+
+    return df
+
 
 def find_file_with_latest_dt_in_dir(
     directory: pathlib.Path,
