@@ -43,8 +43,8 @@ def bq_replace_lib_table(
 
     # Modify DateAdded and Report_Time type from "object" to "DateTime"
     # schema in bq is DATE; requires this to be in pd's datetime format
-    df['DateAdded'] = pd.to_datetime(df['DateAdded'])
-    df['Report_Time'] = pd.to_datetime(df['Report_Time'])
+    df['DateAdded'] = pd.to_datetime(df['DateAdded'], format="%Y-%m-%d")
+    df['Report_Time'] = pd.to_datetime(df['Report_Time'], format="%Y-%m-%d %H:%M:%S")
 
     bq_client.load_table_from_dataframe(
         dataframe=df, 
@@ -81,7 +81,7 @@ def bq_append_diff_table(
 
     # Modify datime's type from "object" to "DateTime"
     # schema in bq is DATE; requires this to be in pd's datetime format
-    df['datetime'] = pd.to_datetime(df['datetime'])
+    df['datetime'] = pd.to_datetime(df['datetime'], format="%Y-%m-%d %H-%M-%S")
 
     bq_client.load_table_from_dataframe(
         dataframe=df, 
