@@ -8,6 +8,7 @@ Performs analytics and visualisations of music listening activities.
 
 This repo (`tabulate-music`) is but one-half. The other half (`scrobble-cloud-func`) is located in another repo, [here](https://github.com/ktingyew/scrobble-cloud-func).
 
+![project-diagram](./gcp.drawio.png)
 
 
 # tabulate-music (this repo)
